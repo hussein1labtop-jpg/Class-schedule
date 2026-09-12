@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>منشئ جدول المحاضرات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBFAF7;
+    --ink:#1C2A3A;
+    --ink-soft:#4B5A6B;
+    --accent:#2F6F6D;
+    --accent-deep:#1E4A48;
+    --line:#C9C2B4;
+    --line-soft:#E8E4DA;
+    --panel:#F1EEE6;
+    --danger:#B44B3C;
+    --header-bg:#EFCB9A;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Cairo',sans-serif;
+    background:#E9E5DC;
+    color:var(--ink);
+    padding:28px 16px 60px;
+  }
+
+  /* ---------- Setup panel ---------- */
+  .setup{
+    max-width:960px;
+    margin:0 auto 24px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:22px 24px;
+  }
+  .setup h1{
+    font-size:20px;
+    font-weight:800;
+    margin:0 0 4px;
+    color:var(--accent-deep);
+  }
+  .setup .sub{
+    font-size:13px;
+    color:var(--ink-soft);
+    margin:0 0 18px;
+  }
+  .row{
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+    margin-bottom:14px;
+  }
+  .field{flex:1; min-width:150px;}
+  .field label{
+    display:block;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    margin-bottom:5px;
+  }
+  .field input[type=text]{
+    width:100%;
+    padding:8px 10px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    font-family:'Cairo',sans-serif;
+    font-size:14px;
+    background:#fff;
+    color:var(--ink);
+  }
+  .field input:focus{outline:2px solid var(--accent); outline-offset:1px;}
+
+  .list-block{
+    background:#fff;
+    border:1px solid var(--line-soft);
+    border-radius:8px;
+    padding:12px 14px;
+    margin-bottom:14px;
+  }
+  .list-block h3{
+    font-size:13.5px;
+    margin:0 0 10px;
+    color:var(--accent-deep);
+    font-weight:700;
+  }
+  .section-row{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    margin-bottom:8px;
+  }
+  .section-row input{
+    padding:6px 9px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    font-family:'Cairo',sans-serif;
+    font-size:13px;
+    width:140px;
+  }
+  .small-x{
+    background:none;
+    border:none;
+    color:var(--danger);
+    font-size:16px;
+    cursor:pointer;
+    line-height:1;
+    padding:4px 6px;
+  }
+  .small-x:hover{opacity:.7;}
+  .add-btn{
+    background:none;
+    border:1px dashed var(--accent);
+    color:var(--accent-deep);
+    border-radius:6px;
+    font-family:'Cairo',sans-serif;
+    font-size:13px;
+    font-weight:600;
+    padding:6px 12px;
+    cursor:pointer;
+  }
+  .add-btn:hover{background:#fff;}
+  .add-btn.small{padding:4px 10px; font-size:12px;}
+
+  /* day cards */
+  .day-card{
+    border:1px solid var(--line-soft);
+    border-radius:8px;
+    margin-bottom:10px;
+    overflow:hidden;
+  }
+  .day-card-head{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:9px 12px;
+  }
+  .day-swatch{
+    width:14px;
+    height:14px;
+    border-radius:3px;
+    flex:none;
+    border:1px solid rgba(0,0,0,.15);
+  }
+  .day-card-head input[type=text].dayNameInput{
+    flex:1;
+    padding:6px 9px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    font-family:'Cairo',sans-serif;
+    font-weight:700;
+    font-size:14px;
+  }
+  .slots-area{
+    padding:8px 12px 12px;
+    background:#FCFBF8;
+  }
+  .slot-row{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    margin-bottom:6px;
+  }
+  .slot-row input[type=text]{
+    padding:6px 9px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    font-family:'Cairo',sans-serif;
+    font-size:13px;
+  }
+  .slot-row .slot-time{width:120px;}
+  .slot-label{font-size:11.5px; color:var(--ink-soft); width:52px; flex:none;}
+
+  .actions{
+    display:flex;
+    gap:10px;
+    margin-top:18px;
+    flex-wrap:wrap;
+  }
+  .btn{
+    font-family:'Cairo',sans-serif;
+    font-weight:700;
+    font-size:14px;
+    border-radius:7px;
+    padding:10px 20px;
+    cursor:pointer;
+    border:none;
+  }
+  .btn-primary{background:var(--accent-deep); color:#fff;}
+  .btn-primary:hover{background:#163837;}
+  .btn-ghost{background:#fff; color:var(--accent-deep); border:1px solid var(--accent-deep);}
+  .btn-ghost:hover{background:#f3f7f6;}
+
+  /* ---------- A4 sheet ---------- */
+  .sheet-wrap{
+    display:flex;
+    justify-content:center;
+  }
+  .sheet{
+    width:210mm;
+    min-height:297mm;
+    max-width:100%;
+    background:var(--paper);
+    box-shadow:0 6px 24px rgba(0,0,0,.18);
+    padding:16mm 14mm;
+  }
+  .sheet-title{
+    text-align:center;
+    font-size:24px;
+    font-weight:800;
+    color:var(--accent-deep);
+    margin:0 0 4px;
+    border-bottom:3px solid var(--accent);
+    padding-bottom:12px;
+  }
+  .sheet-sub{
+    text-align:center;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin:6px 0 20px;
+  }
+  table.schedule{
+    width:100%;
+    border-collapse:collapse;
+    table-layout:fixed;
+  }
+  table.schedule th, table.schedule td{
+    border:1px solid var(--line);
+    text-align:center;
+    vertical-align:middle;
+    padding:0;
+  }
+  table.schedule thead th{
+    background:var(--header-bg);
+    color:var(--ink);
+    font-size:14px;
+    font-weight:800;
+    padding:10px 4px;
+  }
+  table.schedule thead th.day-col{width:15%;}
+  table.schedule thead th.time-col{width:16%;}
+
+  td.day-name-cell{
+    font-size:14px;
+    font-weight:800;
+    color:var(--ink);
+    padding:6px 4px;
+  }
+  td.time-value-cell{
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink);
+    padding:6px 4px;
+    direction:ltr;
+    background:rgba(255,255,255,.35);
+  }
+  td.cell{
+    height:44px;
+    background:rgba(255,255,255,.55);
+  }
+  td.cell [contenteditable]{
+    width:100%;
+    height:100%;
+    min-height:44px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:13px;
+    font-weight:500;
+    color:var(--ink);
+    padding:4px 6px;
+    outline:none;
+  }
+  td.cell [contenteditable]:focus{
+    background:rgba(255,255,255,.9);
+  }
+
+  .print-hint{
+    text-align:center;
+    font-size:11px;
+    color:var(--ink-soft);
+    margin-top:10px;
+  }
+
+  @media print{
+    body{background:#fff; padding:0; margin:0;}
+    .setup, .print-hint{display:none !important;}
+    .sheet-wrap{display:block;}
+    .sheet{
+      box-shadow:none;
+      width:100%;
+      min-height:0;
+      padding:10mm 12mm;
+      margin:0;
+    }
+    @page{
+      size:A4 portrait;
+      margin:8mm;
+    }
+    td.cell [contenteditable]:focus{background:transparent;}
+  }
+</style>
+</head>
+<body>
+
+<div class="setup" id="setupPanel">
+  <h1>منشئ جدول المحاضرات</h1>
+  <p class="sub">حدّد العنوان، الشعب (الأقسام)، والأيام — كل يوم يقدر يحتوي عدد أوقات مختلف. اكتب المادة بكل خانة، وبعدها اطبع أو احفظ PDF.</p>
+
+  <div class="row">
+    <div class="field">
+      <label>عنوان الجدول</label>
+      <input type="text" id="titleInput" value="جدول المحاضرات">
+    </div>
+    <div class="field">
+      <label>عنوان فرعي (اختياري)</label>
+      <input type="text" id="subtitleInput" placeholder="مثال: القسم / المرحلة / الفصل الدراسي">
+    </div>
+  </div>
+
+  <div class="list-block">
+    <h3>الشعب / الأقسام (الأعمدة)</h3>
+    <div id="sectionsContainer"></div>
+    <button class="add-btn" id="addSectionBtn">+ إضافة شعبة</button>
+  </div>
+
+  <div class="list-block">
+    <h3>الأيام وأوقاتها</h3>
+    <div id="daysContainer"></div>
+    <button class="add-btn" id="addDayBtn">+ إضافة يوم</button>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-primary" id="buildBtn">إنشاء / تحديث الجدول</button>
+    <button class="btn btn-ghost" id="printBtn">طباعة / حفظ PDF</button>
+  </div>
+</div>
+
+<div class="sheet-wrap">
+  <div class="sheet" id="sheet">
+    <div class="sheet-title" id="outTitle">جدول المحاضرات</div>
+    <div class="sheet-sub" id="outSubtitle"></div>
+    <table class="schedule" id="scheduleTable"></table>
+  </div>
+</div>
+<p class="print-hint">لحفظ الملف كـ PDF: اضغط "طباعة / حفظ PDF" ثم اختر "Save as PDF" من نافذة الطباعة.</p>
+
+<script>
+const palette = ["#A9CDBB","#F3C6C6","#CBD3AC","#C2CBD6","#E7D3A8","#D6C3DE","#B9DDE0"];
+
+let sections = ["A","B"];
+let days = [
+  {name:"الأحد",    slots:[{time:"1.30 - 3.30"},{time:"3.30 - 5.30"},{time:"5.30 - 7.30"},{time:"7.30 - 9.30"}]},
+  {name:"الاثنين",  slots:[{time:"1.30 - 3.30"},{time:"3.30 - 5.30"},{time:"5.30 - 7.30"},{time:"7.30 - 9.30"}]},
+  {name:"الثلاثاء", slots:[{time:"6 - 8"},{time:"8 - 10"},{time:"10 - 12"}]},
+  {name:"الأربعاء", slots:[{time:"6 - 8"},{time:"8 - 10"},{time:"10 - 12"}]},
+];
+let cellData = {}; // key: "d-s-sec" -> html
+
+/* ---------- Sections editor ---------- */
+function renderSectionsEditor(){
+  const c = document.getElementById("sectionsContainer");
+  c.innerHTML = "";
+  sections.forEach((s,i)=>{
+    const row = document.createElement("div");
+    row.className = "section-row";
+    row.innerHTML = `
+      <input type="text" data-i="${i}" class="sectionNameInput" value="${s}">
+      <button class="small-x" data-i="${i}" title="حذف">✕</button>
+    `;
+    c.appendChild(row);
+  });
+  c.querySelectorAll(".sectionNameInput").forEach(inp=>{
+    inp.addEventListener("input", e=>{
+      sections[+e.target.dataset.i] = e.target.value;
+    });
+  });
+  c.querySelectorAll(".small-x").forEach(btn=>{
+    btn.addEventListener("click", e=>{
+      sections.splice(+e.target.dataset.i,1);
+      renderSectionsEditor();
+    });
+  });
+}
+
+/* ---------- Days editor ---------- */
+function renderDaysEditor(){
+  const c = document.getElementById("daysContainer");
+  c.innerHTML = "";
+  days.forEach((day,di)=>{
+    const card = document.createElement("div");
+    card.className = "day-card";
+
+    const head = document.createElement("div");
+    head.className = "day-card-head";
+    head.style.background = palette[di % palette.length];
+    head.innerHTML = `
+      <span class="day-swatch" style="background:${palette[di % palette.length]}"></span>
+      <input type="text" class="dayNameInput" data-d="${di}" value="${day.name}">
+      <button class="small-x" data-d="${di}" data-act="delDay" title="حذف اليوم">✕</button>
+    `;
+    card.appendChild(head);
+
+    const slotsArea = document.createElement("div");
+    slotsArea.className = "slots-area";
+    day.slots.forEach((slot,si)=>{
+      const sr = document.createElement("div");
+      sr.className = "slot-row";
+      sr.innerHTML = `
+        <span class="slot-label">وقت ${si+1}</span>
+        <input type="text" class="slot-time" data-d="${di}" data-s="${si}" value="${slot.time}" placeholder="مثال: 6 - 8">
+        <button class="small-x" data-d="${di}" data-s="${si}" data-act="delSlot" title="حذف الوقت">✕</button>
+      `;
+      slotsArea.appendChild(sr);
+    });
+    const addSlotBtn = document.createElement("button");
+    addSlotBtn.className = "add-btn small";
+    addSlotBtn.textContent = "+ إضافة وقت";
+    addSlotBtn.dataset.d = di;
+    addSlotBtn.dataset.act = "addSlot";
+    slotsArea.appendChild(addSlotBtn);
+
+    card.appendChild(slotsArea);
+    c.appendChild(card);
+  });
+
+  c.querySelectorAll(".dayNameInput").forEach(inp=>{
+    inp.addEventListener("input", e=>{
+      days[+e.target.dataset.d].name = e.target.value;
+    });
+  });
+  c.querySelectorAll(".slot-time").forEach(inp=>{
+    inp.addEventListener("input", e=>{
+      days[+e.target.dataset.d].slots[+e.target.dataset.s].time = e.target.value;
+    });
+  });
+  c.querySelectorAll('[data-act="delDay"]').forEach(btn=>{
+    btn.addEventListener("click", e=>{
+      days.splice(+e.target.dataset.d,1);
+      renderDaysEditor();
+    });
+  });
+  c.querySelectorAll('[data-act="delSlot"]').forEach(btn=>{
+    btn.addEventListener("click", e=>{
+      days[+e.target.dataset.d].slots.splice(+e.target.dataset.s,1);
+      renderDaysEditor();
+    });
+  });
+  c.querySelectorAll('[data-act="addSlot"]').forEach(btn=>{
+    btn.addEventListener("click", e=>{
+      days[+e.target.dataset.d].slots.push({time:""});
+      renderDaysEditor();
+    });
+  });
+}
+
+/* ---------- Table builder ---------- */
+function buildTable(){
+  // preserve edited cell text
+  document.querySelectorAll("#scheduleTable td.cell [contenteditable]").forEach(el=>{
+    cellData[el.dataset.key] = el.innerHTML;
+  });
+
+  document.getElementById("outTitle").textContent = document.getElementById("titleInput").value || "جدول المحاضرات";
+  document.getElementById("outSubtitle").textContent = document.getElementById("subtitleInput").value || "";
+
+  const table = document.getElementById("scheduleTable");
+  table.innerHTML = "";
+
+  const thead = document.createElement("thead");
+  const headRow = document.createElement("tr");
+  const dayTh = document.createElement("th");
+  dayTh.className = "day-col";
+  dayTh.textContent = "اليوم";
+  headRow.appendChild(dayTh);
+  const timeTh = document.createElement("th");
+  timeTh.className = "time-col";
+  timeTh.textContent = "الوقت";
+  headRow.appendChild(timeTh);
+  sections.forEach(sec=>{
+    const th = document.createElement("th");
+    th.textContent = sec;
+    headRow.appendChild(th);
+  });
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  const tbody = document.createElement("tbody");
+  days.forEach((day,di)=>{
+    const color = palette[di % palette.length];
+    day.slots.forEach((slot,si)=>{
+      const tr = document.createElement("tr");
+
+      if(si === 0){
+        const dayTd = document.createElement("td");
+        dayTd.className = "day-name-cell";
+        dayTd.rowSpan = day.slots.length;
+        dayTd.style.background = color;
+        dayTd.textContent = day.name;
+        tr.appendChild(dayTd);
+      }
+
+      const timeTd = document.createElement("td");
+      timeTd.className = "time-value-cell";
+      timeTd.style.background = color;
+      timeTd.textContent = slot.time || "";
+      tr.appendChild(timeTd);
+
+      sections.forEach((sec,seci)=>{
+        const td = document.createElement("td");
+        td.className = "cell";
+        td.style.background = color;
+        const key = di+"-"+si+"-"+seci;
+        const div = document.createElement("div");
+        div.contentEditable = "true";
+        div.dataset.key = key;
+        div.innerHTML = cellData[key] || "";
+        td.appendChild(div);
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
+    });
+  });
+  table.appendChild(tbody);
+}
+
+document.getElementById("addSectionBtn").addEventListener("click", ()=>{
+  const letters = "ABCDEFGH";
+  sections.push(letters[sections.length] || ("شعبة "+(sections.length+1)));
+  renderSectionsEditor();
+});
+document.getElementById("addDayBtn").addEventListener("click", ()=>{
+  days.push({name:"يوم جديد", slots:[{time:""}]});
+  renderDaysEditor();
+});
+document.getElementById("buildBtn").addEventListener("click", buildTable);
+document.getElementById("printBtn").addEventListener("click", ()=>{
+  buildTable();
+  window.print();
+});
+document.getElementById("titleInput").addEventListener("input", ()=>{
+  document.getElementById("outTitle").textContent = document.getElementById("titleInput").value;
+});
+document.getElementById("subtitleInput").addEventListener("input", ()=>{
+  document.getElementById("outSubtitle").textContent = document.getElementById("subtitleInput").value;
+});
+
+renderSectionsEditor();
+renderDaysEditor();
+buildTable();
+</script>
+</body>
+</html>
